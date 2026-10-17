@@ -1,0 +1,5 @@
+__pycache__/
+memory.json
+.env
+*.wav
+.streamlit/secrets.toml
