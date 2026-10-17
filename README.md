@@ -2,8 +2,8 @@
 
 > Talk to it, think out loud, and it remembers. E-Bhai is one app that merges three ideas into a single voice-first experience: a **daily voice check-in friend**, a **spoken-reasoning doubt solver**, and a **voice journal that narrates your own memoir**. It runs on [Sarvam AI](https://docs.sarvam.ai/) models built for Indian languages and code-mixed speech.
 
-**Live demo:** `<add your Streamlit Cloud URL here>`
-**Repo:** `https://github.com/<your-username>/<your-repo>`
+**Live demo:** `<https://e-bhai-sarvamai2k26-ug1.streamlit.app/>`
+**Repo:** `https://github.com/Athmanthe1/E-Bhai`
 
 ---
 
