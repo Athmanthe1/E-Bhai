@@ -1,5 +1,13 @@
-__pycache__/
-memory.json
+   __pycache__/
+   .venv/
+   memory.json
+   .env
+   *.wav
+   .streamlit/secrets.toml__pycache__/
+*.py[cod]
+.venv/
 .env
-*.wav
 .streamlit/secrets.toml
+memory.json
+*.wav
+bundle.txt
