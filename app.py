@@ -78,16 +78,25 @@ def new_audio(key: str, clip) -> bytes | None:
 
 
 def transcribe(data: bytes) -> str | None:
-    # 'language' and 'lang_code' are global variables defined later in the script
-    # This function relies on them being set in the main body
+    # 1. Debug: Confirm Streamlit actually captured audio bytes
+    print(f"🎙️ Received audio recording: {len(data)} bytes")
+    
     mode = "codemix" if language == "Hinglish" else "transcribe"
     with st.spinner("Listening..."):
         text = safe(sarvam_core.stt_bytes, data, mode)
-        if text is not None and not text.strip():
-            st.warning("I couldn't hear anything. Please record again.")
+        
+        # 2. Debug: See exactly what the Sarvam STT API returned
+        print(f"📝 STT API returned: '{text}'")
+        
+        if text is None:
+            st.error("The speech-to-text API failed. Please check your terminal for the exact error.")
             return None
+            
+        if not text.strip():
+            st.warning("I couldn't hear anything clearly. Please try recording again (speak for 3-5 seconds directly into the mic).")
+            return None
+            
     return text
-
 
 def speak(text: str) -> bytes | None:
     with st.spinner("Finding my voice..."):
@@ -165,14 +174,29 @@ def checkin_system_prompt() -> str:
 
 
 def handle_checkin(user_text: str) -> None:
+    # 1. Add the user's message to the chat history IMMEDIATELY.
+    # This ensures you see your own text even if the bot fails to reply.
+    st.session_state.chat.append({"role": "user", "content": user_text})
+    
     history = st.session_state.chat[-6:]
     messages = build_messages(checkin_system_prompt(), history, user_text)
+    
     with st.spinner("E-Bhai is thinking..."):
         reply = safe(sarvam_core.chat, messages)
-        if not reply:
-            return
-    st.session_state.chat += [{"role": "user", "content": user_text},
-                              {"role": "assistant", "content": reply}]
+        
+    # 2. Handle the bot's reply safely
+    if reply is None:
+        # The API failed. The safe() function already showed a red error box in the UI.
+        # We add a fallback message so the chat doesn't look broken.
+        reply = "Sorry, I had a little trouble connecting right now. Could you try again?"
+    elif not reply.strip():
+        # The API succeeded but returned an empty string (e.g., only thinking tokens)
+        reply = "I'm listening! Could you tell me a bit more about that?"
+
+    # Add the bot's reply to the chat history
+    st.session_state.chat.append({"role": "assistant", "content": reply})
+    
+    # 3. Generate the spoken audio and save the memory
     st.session_state.ci_audio = speak(reply)
 
     raw = ask(
@@ -191,10 +215,10 @@ with tab_checkin:
     if data:
         heard = transcribe(data)
         if heard:
-            handle_checkin(heard)
+            st.session_state.ci_text_input = heard
 
     with st.form("ci_form", clear_on_submit=True):
-        typed = st.text_input("Or type here")
+        typed = st.text_input("Or type here", key="ci_text_input")
         if st.form_submit_button("Send") and typed.strip():
             handle_checkin(typed.strip())
 
